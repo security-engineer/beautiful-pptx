@@ -1,0 +1,85 @@
+{
+  "theme": "slate",
+  "mode": "light",
+  "preset": "research-talk",
+  "layout": "16x9",
+  "slides": [
+    {
+      "type": "cover",
+      "title": "beautiful-pptx 엔진 점검용 데모 덱",
+      "subtitle": "모든 슬라이드 유형을 한 장씩 — 빌드 파이프라인 스모크",
+      "meta": "beautiful-pptx · smoke example",
+      "notes": "이 덱은 cover/section/keymsg/kpi/chart/compare/timeline/quote/closing/backup 열 가지 부품이 모두 정상 렌더되는지 점검하는 용도입니다.",
+      "source": ""
+    },
+    {
+      "type": "section",
+      "n": "1",
+      "title": "섹션 구분 슬라이드"
+    },
+    {
+      "type": "keymsg",
+      "assertion": "핵심 메시지 슬라이드는 제목이 완결된 문장 주장이고 본문이 그 근거다",
+      "evidence": "assertion-evidence 패턴 — 헤드라인이 주제어가 아니라 '무엇이 참인가'를 말하고, 아래는 그 주장을 떠받치는 시각/텍스트 증거를 둔다.",
+      "source": "Alley, The Craft of Scientific Presentations"
+    },
+    {
+      "type": "kpi",
+      "title": "KPI 카드 — 숫자에 해석을 붙인다",
+      "items": [
+        { "value": "48%", "label": "추론 비용 절감", "interp": "정확도 손실 1% 미만", "color": "ok" },
+        { "value": "2.3배", "label": "처리량 향상", "interp": "성수기 병목 해소", "color": "info" },
+        { "value": "18개월", "label": "투자 회수", "interp": "보수 가정 기준", "color": "warn" }
+      ],
+      "source": "데모 더미 데이터"
+    },
+    {
+      "type": "chart",
+      "title": "차트 슬라이드는 제목이 결론, 우측 박스가 so-what이다",
+      "chartType": "bar",
+      "data": [
+        { "name": "값", "labels": ["A", "B", "C", "D"], "values": [12, 27, 19, 34] }
+      ],
+      "takeaway": "막대 D가 가장 높다 — 이 한 가지 메시지만 전달한다.",
+      "source": "데모 더미 데이터"
+    },
+    {
+      "type": "compare",
+      "title": "비교 슬라이드 — 좌우 두 갈래를 나란히",
+      "left": {
+        "head": "방안 A",
+        "points": ["빠른 도입", "낮은 초기 비용", "확장성 제한"]
+      },
+      "right": {
+        "head": "방안 B",
+        "points": ["도입 기간 김", "높은 초기 비용", "장기 확장 우수"]
+      },
+      "source": "데모 더미 데이터"
+    },
+    {
+      "type": "timeline",
+      "title": "타임라인 — 시간 순 단계",
+      "steps": [
+        { "when": "1주차", "what": "요구사항 정리" },
+        { "when": "3주차", "what": "프로토타입" },
+        { "when": "6주차", "what": "베타 출시" },
+        { "when": "10주차", "what": "정식 배포" }
+      ]
+    },
+    {
+      "type": "quote",
+      "quote": "복잡한 것을 단순하게 보여주는 것이 디자인의 본질이다.",
+      "who": "데모 인용 · 출처 미상"
+    },
+    {
+      "type": "closing",
+      "title": "열 가지 부품이 모두 정상이면 엔진은 건강하다",
+      "contact": "beautiful-pptx · node deck.js smoke"
+    },
+    {
+      "type": "backup",
+      "title": "백업 — 밀도 허용 슬라이드",
+      "body": "백업 슬라이드는 본문 슬라이드보다 정보 밀도를 더 허용한다. Q&A나 부록용으로, 상세 표·하이퍼파라미터·민감도 분석 같은 빽빽한 내용을 담을 수 있다. 이 슬라이드는 빌드 파이프라인이 backup 부품과 긴 본문 텍스트를 정상 처리하는지 확인한다."
+    }
+  ]
+}

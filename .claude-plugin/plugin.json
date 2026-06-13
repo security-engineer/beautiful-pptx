@@ -1,0 +1,8 @@
+{
+  "name": "beautiful-pptx",
+  "description": "Generate beautiful, well-composed .pptx from code (pptxgenjs): 4 genre presets (research/business), 6 themes, 11 semantic slide components, a quantitative design linter, and optional template-edit + visual-QA. Korean-first.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": ["pptx","powerpoint","presentation","slides","pptxgenjs","design","korean"],
+  "skills": ["."]
+}

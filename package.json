@@ -1,0 +1,28 @@
+{
+  "name": "beautiful-pptx",
+  "version": "0.1.0",
+  "description": "Opinionated, design-system-driven .pptx generator built on pptxgenjs (WCAG-checked themes, Tufte charts, layout grid, lint).",
+  "main": "deck.js",
+  "bin": {
+    "beautiful-pptx": "deck.js"
+  },
+  "scripts": {
+    "smoke": "node deck.js smoke"
+  },
+  "keywords": [
+    "pptx",
+    "powerpoint",
+    "presentation",
+    "pptxgenjs",
+    "slides",
+    "design-system"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  },
+  "optionalDependencies": {
+    "sharp": "*",
+    "react-icons": "*"
+  }
+}
