@@ -1,9 +1,25 @@
 {
   "name": "beautiful-pptx",
-  "owner": { "name": "security-engineer" },
-  "metadata": { "description": "Beautiful .pptx generator skill (pptxgenjs): genre presets, themes, components, design linter.", "version": "0.1.0" },
+  "owner": {
+    "name": "security-engineer"
+  },
+  "metadata": {
+    "description": "Beautiful .pptx generator skill (pptxgenjs): genre presets, themes, components, design linter.",
+    "version": "0.2.0"
+  },
   "plugins": [
-    { "name": "beautiful-pptx", "source": "./", "description": "Generate beautiful, well-composed .pptx — research/business presets, themes, components, linter.", "version": "0.1.0",
-      "keywords": ["pptx","presentation","slides","pptxgenjs","korean"] }
+    {
+      "name": "beautiful-pptx",
+      "source": "./",
+      "description": "Generate beautiful, well-composed .pptx — research/business presets, themes, components, linter.",
+      "version": "0.2.0",
+      "keywords": [
+        "pptx",
+        "presentation",
+        "slides",
+        "pptxgenjs",
+        "korean"
+      ]
+    }
   ]
 }

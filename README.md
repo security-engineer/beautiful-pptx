@@ -2,9 +2,9 @@
 
 # beautiful-pptx
 
-**이쁘고 구성 탄탄한 .pptx를 코드로 찍어내는 Claude Code 스킬 — 연구·비즈니스 발표 특화**
+**이쁘고 구성 탄탄한 .pptx를 코드로 찍어내는 Claude Code 스킬 · 플러그인 — 연구·비즈니스 발표 특화**
 
-[![version](https://img.shields.io/badge/version-0.1.0-3b82f6)](#)
+[![version](https://img.shields.io/badge/version-0.2.0-3b82f6)](#)
 [![license](https://img.shields.io/badge/license-MIT-22c55e)](#-라이선스)
 [![engine](https://img.shields.io/badge/engine-pptxgenjs-8b5cf6)](#)
 [![presets](https://img.shields.io/badge/presets-research·business-f59e0b)](#-장르-프리셋-4종)
@@ -13,54 +13,82 @@
 
 ---
 
-PowerPoint 안의 Claude는 당신 파일을 못 봅니다. 그래서 **자료를 다 보는 Claude Code(여기)에서 진짜 .pptx를 만들고**, PowerPoint에선 다듬기만 하자는 게 이 스킬입니다. 시중 pptx 도구·AI 발표 제품·발표 디자인 연구를 전수조사해 좋은 기능만 하이브리드했습니다.
+PowerPoint 안의 Claude는 당신 파일을 못 봅니다. 그래서 **자료를 다 보는 Claude Code(여기)에서 진짜 .pptx를 만들고**, PowerPoint에선 다듬기만 하자는 게 이 스킬입니다. 시중 pptx 도구·AI 발표 제품(GenSpark·Gamma 등)·발표 디자인 연구를 전수조사해 좋은 기능만 하이브리드했습니다.
+
+**비주얼은 3단으로 쌓입니다:** ① 그라데이션·기하 배경(GPU 0) → ② 레이아웃·위계·아이콘(GPU 0) → ③ **AI 히어로 이미지**(로컬 모델 API 주소만 지정). 셋 다 텍스트·수치·차트는 **진짜 텍스트로** 얹어 정확·편집 가능합니다(이미지에 숫자를 굽지 않음).
 
 ## ✨ 한눈에
 
 | | 기능 | 무엇을 |
 |:--:|---|---|
 | 📐 | **의미 부품 11종** | `cover·section·keymsg·kpi·chart·compare·timeline·process·quote·closing·backup` — 좌표 계산 없이 함수 호출만 |
-| 🎨 | **디자인 토큰 테마 6종** | slate·navy·forest·plum·mono·warm (라이트/다크). 60/30/10·WCAG 대비 검증·안전폰트 |
-| 🎯 | **장르 프리셋 4종** | `research-talk · defense · exec · pitch` — 슬라이드 시퀀스·톤·밀도까지 |
+| 🎨 | **테마 6종 + 그라데이션 배경** | slate·navy·forest·plum·mono·warm (라이트/다크). 표지·섹션·마무리에 sharp로 생성한 그라데이션·기하 배경. 60/30/10·WCAG 대비 검증 |
+| 🖼️ | **AI 히어로 이미지** | 로컬/원격 이미지 모델 **API 주소만 지정**하면 `imagePrompt` 슬라이드가 진짜 이미지로(표지 풀블리드·본문 분할). 없으면 데코 폴백 |
+| 🎯 | **장르 프리셋 4종** | `research-talk · defense · exec · pitch` — 슬라이드 시퀀스·톤·밀도·분량까지 |
+| 🔁 | **인테이크 + 렌더 검수** | 빌드 전 깊이·청중을 묻고(논문은 25~35장 권장), 만든 뒤 **실제로 렌더해 겹침·오버플로를 눈으로 잡음** |
 | 🔍 | **정량 린터 9규칙** | 6요소 초과·18pt 미만·대비 4.5:1·텍스트only·제목밑 라인 등 "AI 티" 자동 경고 |
-| 🛠 | **템플릿·QA(선택)** | 회사 .pptx 편집·시각 검수·스키마 검증은 Anthropic office 스크립트 호출(있으면) |
 
-## 📦 설치
+## 📦 설치 & 셋업
 
-**방법 A — 플러그인 마켓플레이스 (가장 간편)**
+**1) 플러그인 설치**
 ```
 /plugin marketplace add security-engineer/beautiful-pptx
 /plugin install beautiful-pptx@beautiful-pptx
 ```
-전체 URL도 됩니다: `/plugin marketplace add https://github.com/security-engineer/beautiful-pptx`
+(수동: `cp -r skills/beautiful-pptx ~/.claude/skills/`)
 
-**방법 B — 스킬 수동 복사**
+**2) 의존성 (필수)**
 ```bash
-cp -r skills/beautiful-pptx ~/.claude/skills/
+# 스킬 폴더에서 node 패키지 (pptxgenjs + sharp)
+cd ~/.claude/skills/beautiful-pptx    # 또는 플러그인 캐시 경로
+npm install
+
+# 렌더·시각검수 도구 (겹침·오버플로를 잡는 핵심 단계)
+sudo apt-get install -y libreoffice-impress poppler-utils fonts-noto-cjk fonts-nanum
+#  macOS: brew install --cask libreoffice ; brew install poppler
 ```
-설치 후 의존성은 둘 중 하나 — 스킬 폴더에서 `npm install`, 또는 전역 pptxgenjs + `NODE_PATH=$(npm root -g)`. 그다음 "발표자료 .pptx 만들어줘"로 발동합니다.
+> 첫 빌드 때 Claude에게 "의존성 깔고 시작해"라고만 해도 `npm install`을 알아서 합니다. 미리 해두면 더 매끄럽습니다.
+
+## 🖼️ AI 이미지 연동 (선택 — 로컬/원격 모델)
+
+이미지 생성 API 주소만 지정하면 슬라이드에 AI 이미지가 들어갑니다. **MCP 불필요** — 빌드 엔진이 HTTP로 직접 호출.
+
+```bash
+export BP_IMAGE_API_URL=http://127.0.0.1:8000   # 로컬 머신의 모델 서버
+export BP_IMAGE_API_KIND=openai                  # openai | a1111 | comfy | generic
+# (선택) BP_IMAGE_API_MODEL, BP_IMAGE_API_KEY
+```
+슬라이드 스펙에 `"imagePrompt": "..."` → `cover`는 풀블리드 히어로, `keymsg`는 우측 분할에 이미지. 미설정·실패면 그라데이션·데코로 **graceful 폴백**.
+
+**로컬 모델 권고(2026):** 라이선스 자유 = **Qwen-Image-2512 + Qwen-Image-Edit-2511**(Apache). 텍스트·디자인 최강 = **Ideogram 4.0**(가중치 비상업). 히어로·멀티참조 = **FLUX.2 dev**(비상업). ComfyUI·SD-WebUI를 OpenAI 호환/a1111 형식으로 노출하면 바로 붙습니다. **정확한 숫자·라벨은 imagePrompt에 넣지 마세요** — 이미지 텍스트는 불안정합니다(엔진이 진짜 텍스트로 얹음).
 
 ## 🚀 사용
 
-**자연어로** — "이 내용으로 디펜스 발표 .pptx 만들어줘. 개요부터 보여주고." → 스킬이 개요 제안 → 확인 → 빌드 → QA.
+**자연어 / `/deck`** — 스킬이 인테이크부터 돌립니다:
+```
+/deck Chain-of-Thought 논문 발표 만들어줘
+```
+> "이 논문(또는 주제)으로 발표 .pptx 만들어줘. 개요부터 보여주고."
 
-**직접 빌드** — deckSpec(JSON)으로:
+흐름: **① 깊이·청중·테마 질문 → ② 슬라이드별 개요 제시·승인 → ③ 빌드(이미지 API 켜져 있으면 히어로 이미지까지) → ④ 렌더 검수(겹침·오버플로 수정) → ⑤ .pptx 전달.** 논문이면 정밀(25~35장)이 기본 권고.
+
+**직접 빌드** — deckSpec(JSON):
 ```bash
 node deck.js build spec.json out.pptx
 node deck.js smoke          # 예제 빌드(엔진 점검)
 ```
 ```jsonc
-// spec.json
-{ "theme":"navy", "mode":"light", "preset":"research-talk", "layout":"16x9",
+{ "theme":"navy", "mode":"light", "preset":"research-talk",
+  "imageApi": { "url":"http://127.0.0.1:8000", "kind":"openai" },   // 선택
   "slides":[
-    { "type":"cover", "title":"…", "subtitle":"…", "meta":"…", "notes":"…" },
-    { "type":"keymsg", "assertion":"한 문장 주장", "evidence":"…", "source":"…", "notes":"…" },
+    { "type":"cover", "title":"…", "subtitle":"…", "meta":"…", "imagePrompt":"abstract neural net, navy" },
+    { "type":"keymsg", "assertion":"한 문장 주장", "evidence":"…", "source":"…" },
     { "type":"chart", "title":"…", "chartType":"bar",
       "data":[{ "name":"GSM8K 정답률(%)", "labels":["표준","CoT"], "values":[17.9,56.9] }],
-      "takeaway":"…", "source":"…" }
+      "takeaway":"so-what 한 줄", "source":"…" }
   ] }
 ```
-실제 예제: `skills/beautiful-pptx/examples/`의 `research-talk·defense·exec·pitch·cot-demo` 참고.
+실제 예제: `skills/beautiful-pptx/examples/`의 `research-talk·defense·exec·pitch·cot-demo`.
 
 ## 🎬 장르 프리셋 4종
 
@@ -74,19 +102,21 @@ node deck.js smoke          # 예제 빌드(엔진 점검)
 ## 🗂️ 구조
 ```
 .claude-plugin/        # plugin.json + marketplace.json (마켓플레이스 설치용)
+commands/deck.md       # /deck 마법사 (인테이크→개요→빌드→렌더 검수)
 README.md
 skills/beautiful-pptx/
   SKILL.md DESIGN.md PRESETS.md CONTRACT.md
   deck.js              # CLI 진입 (build / smoke)
   package.json
-  lib/  tokens.js core.js components.js presets.js build.js
-  scripts/  office-detect·preview·validate (Anthropic 스크립트 호출, graceful)
-  examples/  research-talk·defense·exec·pitch·example·cot-demo (deckSpec JSON)
+  lib/  tokens · core · components · presets · build · assets(배경) · imagegen(이미지 API)
+  scripts/  office-detect · preview · validate (Anthropic 스크립트 호출, graceful)
+  examples/  research-talk · defense · exec · pitch · example · cot-demo (deckSpec JSON)
 ```
 
 ## ⚠️ 알려진 한계
-- 산출 .pptx는 **PowerPoint·Google Slides·Keynote·LibreOffice에서 모두 정상**으로 열립니다(pptxgenjs는 프로덕션급). 단 엄격한 ISO-29500 스키마 검증기는 element 순서 2건(`notesMasterIdLst`·chart `axId`)을 경고합니다 — 실제 앱은 무시하는 항목이며, "검증기 100% 통과"는 후처리(unpack→순서수정→pack) 단계의 향후 과제입니다.
-- 슬라이드 미리보기·PDF 변환은 `soffice`/`poppler`가 있을 때만(없으면 .pptx 생성은 정상).
+- 산출 .pptx는 **PowerPoint·Google Slides·Keynote·LibreOffice에서 모두 정상**으로 열립니다(pptxgenjs는 프로덕션급). 단 엄격한 ISO-29500 스키마 검증기는 element 순서 2건(`notesMasterIdLst`·chart `axId`)을 경고 — 실제 앱은 무시하는 항목.
+- 그라데이션·아이콘은 `sharp`, 렌더 검수·PDF는 `soffice`/`poppler`가 있을 때만(없으면 단색·이미지 없이 생성은 정상).
+- AI 이미지 품질은 당신이 연결한 모델에 달림. 이미지 속 정밀 텍스트는 어떤 모델도 100% 신뢰 불가 → 수치·차트·제목은 엔진이 진짜 텍스트로 처리.
 
 ## 📄 라이선스
 MIT (Anthropic office 스크립트는 복사하지 않고, 설치돼 있을 때 호출만 — 그 스크립트는 각자 라이선스를 따름)
