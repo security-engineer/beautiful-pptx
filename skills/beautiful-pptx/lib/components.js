@@ -87,6 +87,16 @@ function addSection(pptx, spec, theme) {
   return withNotes(slide, spec);
 }
 
+// 텍스트만 있을 때 우측을 채우는 데코 패널(이미지 없을 때 휑함 제거 + 색감).
+function _decorPanel(slide, x, y, w, h, theme) {
+  const a = core.color(theme.accent);
+  const c = core.color(theme.concept || theme.accent);
+  slide.addShape('roundRect', { x, y, w, h, rectRadius: 0.1, fill: { color: a, transparency: 93 }, line: { type: 'none' } });
+  slide.addShape('ellipse', { x: x + w - 1.55, y: y + 0.28, w: 1.7, h: 1.7, fill: { color: a, transparency: 82 }, line: { type: 'none' } });
+  slide.addShape('ellipse', { x: x + 0.35, y: y + h - 1.4, w: 1.2, h: 1.2, fill: { type: 'none' }, line: { color: c, transparency: 55, width: 2 } });
+  slide.addShape('roundRect', { x: x + 0.4, y: y + h / 2 - 0.06, w: 0.85, h: 0.13, rectRadius: 0.06, fill: { color: a, transparency: 25 }, line: { type: 'none' } });
+}
+
 // ── C. 핵심 메시지 (Assertion-Evidence) — 표준형 ───────────────────────────
 // 제목 = 완결 문장 주장, 본문 = 시각 증거(image/chart/evidence 중 하나).
 function addKeyMsg(pptx, spec, theme) {
@@ -112,26 +122,38 @@ function addKeyMsg(pptx, spec, theme) {
     align: 'left', valign: 'middle'
   });
 
-  // ── 근거 = 주장 아래로 흘림. 주장보다 작게(위계). ──
-  const evY = aY + aH + 0.3;
+  // ── 근거 영역: 좌 텍스트(58%) + 우 비주얼(이미지 or 데코 패널)로 채워 휑함 제거 ──
+  const evY = aY + aH + 0.32;
   const evH = Math.max(0.6, 5.15 - evY);
+
+  // 차트는 전폭
   if (spec.chart && spec.chart.data) {
     core.styledChart(slide, spec.chart.type || 'bar', spec.chart.data, theme,
       { x: grid.liveX, y: evY, w: grid.liveW, h: evH, emphasis: (spec.chart.accentIndex != null ? spec.chart.accentIndex : -1) });
-  } else if (spec.image) {
-    slide.addImage({ path: spec.image, x: grid.liveX, y: evY, w: grid.liveW, h: evH, sizing: { type: 'contain', w: grid.liveW, h: evH } });
-  } else if (Array.isArray(spec.evidence)) {
+    return withNotes(slide, spec);
+  }
+
+  const textW = grid.liveW * 0.58;
+  const visX = grid.liveX + textW + 0.4;
+  const visW = grid.liveX + grid.liveW - visX;
+  if (Array.isArray(spec.evidence)) {
     core.addBullets(slide, spec.evidence.map(txt), {
-      x: grid.liveX, y: evY, w: grid.liveW, h: evH,
+      x: grid.liveX, y: evY, w: textW, h: evH,
       fontFace: faceFor(spec.evidence.join(''), theme), fontSize: 18, color: core.color('334155')
     });
   } else if (spec.evidence) {
-    const eFs = core.fitText(grid.liveW, evH, txt(spec.evidence), { min: 15, max: 20, lineH: 1.3 });
-    slide.addText(txt(spec.evidence), {
-      x: grid.liveX, y: evY, w: grid.liveW, h: evH,
-      fontFace: faceFor(spec.evidence, theme), fontSize: eFs,
-      color: core.color('334155'), align: 'left', valign: 'top', lineSpacingMultiple: 1.3
+    const e = txt(spec.evidence);
+    const eFs = core.fitText(textW, evH, e, { min: 15, max: 20, lineH: 1.32 });
+    slide.addText(e, {
+      x: grid.liveX, y: evY, w: textW, h: evH,
+      fontFace: faceFor(e, theme), fontSize: eFs,
+      color: core.color('334155'), align: 'left', valign: 'top', lineSpacingMultiple: 1.32
     });
+  }
+  if (spec.image) {
+    slide.addImage({ path: spec.image, x: visX, y: evY, w: visW, h: evH, sizing: { type: 'cover', w: visW, h: evH } });
+  } else {
+    _decorPanel(slide, visX, evY, visW, evH, theme);
   }
   return withNotes(slide, spec);
 }
