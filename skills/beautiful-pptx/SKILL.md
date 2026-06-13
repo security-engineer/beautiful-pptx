@@ -171,7 +171,32 @@ node deck.js smoke
 
 ---
 
-## 10. 산출물 받기
+## 10. 이미지 생성 API 연동 (선택 — 로컬/원격 모델)
+
+슬라이드에 AI 생성 이미지를 넣으려면 **이미지 생성 API 주소만 지정**하면 된다. **MCP 불필요** — 빌드 엔진이 HTTP로 직접 호출한다.
+
+**설정**(둘 중 하나):
+- 환경변수: `BP_IMAGE_API_URL`(필수) · `BP_IMAGE_API_KIND`(`openai`|`a1111`|`comfy`|`generic`, 기본 openai) · `BP_IMAGE_API_MODEL` · `BP_IMAGE_API_KEY`.
+- deckSpec: `"imageApi": { "url":"http://<로컬머신>:<포트>", "kind":"openai", "model":"...", "key":"..." }`.
+
+**사용**: 슬라이드 스펙에 `"imagePrompt": "..."` 를 넣으면 그 프롬프트로 이미지를 생성해 채운다.
+- `cover`: 풀블리드 히어로 이미지 + 어두운 오버레이(텍스트 가독성 보장).
+- `keymsg` 등: 본문 시각 자리에 인라인.
+- 미설정·실패·타임아웃이면 그라데이션 배경으로 **graceful 폴백**(이미지 없이도 빌드 성공).
+
+```bash
+# 예: 로컬 머신의 OpenAI 호환 이미지 서버
+BP_IMAGE_API_URL=http://192.168.0.10:8000 BP_IMAGE_API_KIND=openai \
+  node deck.js build spec.json out.pptx
+```
+
+**규율(중요)**: **정확한 숫자·라벨은 `imagePrompt`에 넣지 마라.** 최강 모델(Nano Banana Pro 포함)도 이미지 속 긴·정밀 텍스트는 100% 신뢰 못 한다. 이미지는 히어로·추상 배경·일러스트·개념도에만 쓰고, **수치·차트·제목은 우리 엔진이 진짜 텍스트로** 얹는다(정확·편집 가능). 이게 "이쁨 + 정확"의 최적해다.
+
+**로컬 모델 권고(2026 기준)**: 라이선스 자유 = Qwen-Image-2512 + Qwen-Image-Edit-2511(Apache). 텍스트·디자인 최강 = Ideogram 4.0(가중치 비상업). 히어로·멀티참조 = FLUX.2 dev(비상업). ComfyUI/SD-WebUI를 OpenAI 호환 또는 a1111 형식으로 노출하면 위 kind로 바로 붙는다.
+
+---
+
+## 11. 산출물 받기
 
 이 환경은 **헤드리스 서버**다. 빌드한 .pptx는 화면에 안 뜬다. 사용자에게 **경로를 알려주고 scp/다운로드로 받으라**고 안내한다:
 

@@ -32,7 +32,13 @@ function txt(v, fallback) {
 function addCover(pptx, spec, theme) {
   spec = spec || {};
   const slide = pptx.addSlide({ masterName: 'TITLE' });
-  slide.background = (theme._assets && theme._assets.dark) ? { path: theme._assets.dark } : { color: core.color('0F172A') };
+  if (spec.image) {
+    // 풀블리드 히어로 이미지 + 어두운 오버레이(텍스트 가독성)
+    slide.addImage({ path: spec.image, x: 0, y: 0, w: grid.W, h: grid.H, sizing: { type: 'cover', w: grid.W, h: grid.H } });
+    slide.addShape('rect', { x: 0, y: 0, w: grid.W, h: grid.H, fill: { color: core.color('0F172A'), transparency: 42 }, line: { type: 'none' } });
+  } else {
+    slide.background = (theme._assets && theme._assets.dark) ? { path: theme._assets.dark } : { color: core.color('0F172A') };
+  }
   // 상단 액센트 바
   slide.addShape('rect', { x: 0.7, y: 1.05, w: 0.95, h: 0.09, fill: { color: core.color(theme.accent) }, line: { type: 'none' } });
   // 고정 존(겹침 원천 차단): 제목 1.45~3.65, 부제 3.85~4.6, 메타 5.0.

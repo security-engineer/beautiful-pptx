@@ -11,8 +11,10 @@ const core = require('./core');
 const C = require('./components');
 const PRESETS = require('./presets');
 const assets = require('./assets');
+const imagegen = require('./imagegen');
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
 
 // 슬라이드 토큰 → 부품 함수
 const DISPATCH = {
@@ -153,6 +155,28 @@ async function build(deckSpec, opts) {
 
   const lint = [];
   const slides = Array.isArray(deckSpec.slides) ? deckSpec.slides : [];
+
+  // 이미지 API가 설정돼 있으면 imagePrompt 슬라이드에 이미지를 생성해 spec.image 로 채운다.
+  // (env BP_IMAGE_API_URL 또는 deckSpec.imageApi. 미설정·실패면 그라데이션 폴백.)
+  const imgCfg = imagegen.resolveConfig(deckSpec);
+  if (imgCfg) {
+    const adir = path.join(os.tmpdir(), 'bp-assets');
+    try { fs.mkdirSync(adir, { recursive: true }); } catch (e) { /* */ }
+    let gi = 0;
+    for (const spec of slides) {
+      if (spec && spec.imagePrompt && !spec.image) {
+        gi += 1;
+        try {
+          const p = await imagegen.generate(spec.imagePrompt, imgCfg,
+            path.join(adir, `gen-${gi}.png`),
+            { width: 1280, height: 720, negative: deckSpec.imageNegative });
+          if (p) spec.image = p;
+          else lint.push({ rule: 'L_IMAGE', level: 'warn', msg: `이미지 생성 실패(폴백): "${String(spec.imagePrompt).slice(0, 40)}"`, page: gi });
+        } catch (e) { /* graceful */ }
+      }
+    }
+  }
+
   let page = 0;
   for (const spec of slides) {
     const type = spec.type || chooseLayout(spec);
