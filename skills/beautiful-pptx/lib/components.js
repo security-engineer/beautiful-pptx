@@ -32,20 +32,28 @@ function txt(v, fallback) {
 function addCover(pptx, spec, theme) {
   spec = spec || {};
   const slide = pptx.addSlide({ masterName: 'TITLE' });
-  slide.background = { color: core.color(theme.base === '#FFFFFF' || theme.mode === 'light' ? '0F172A' : theme.base) };
-  // design-spec §4-A
-  slide.addText(txt(spec.title, '제목'), {
-    x: 0.7, y: 2.2, w: 8.6, h: 1.2,
-    fontFace: faceFor(spec.title, theme), fontSize: theme.scale.title, bold: true,
-    color: core.color('FFFFFF'), align: 'left', valign: 'middle'
+  slide.background = { color: core.color('0F172A') };
+  // 상단 액센트 바
+  slide.addShape('rect', { x: 0.7, y: 1.05, w: 0.95, h: 0.09, fill: { color: core.color(theme.accent) }, line: { type: 'none' } });
+  // 고정 존(겹침 원천 차단): 제목 1.45~3.65, 부제 3.85~4.6, 메타 5.0.
+  // fitText는 더 빡빡한 높이로 계산해 실제 렌더가 존 안에 들어오게 한다.
+  const title = txt(spec.title, '제목');
+  const tFs = core.fitText(8.6, 2.0, title, { min: 22, max: 38, lineH: 1.18 });
+  slide.addText(title, {
+    x: 0.7, y: 1.45, w: 8.6, h: 2.2,
+    fontFace: faceFor(title, theme), fontSize: tFs, bold: true,
+    color: core.color('FFFFFF'), align: 'left', valign: 'top', lineSpacingMultiple: 1.12
   });
-  if (spec.subtitle) slide.addText(txt(spec.subtitle), {
-    x: 0.7, y: 3.5, w: 8.6, h: 0.6,
-    fontFace: faceFor(spec.subtitle, theme), fontSize: theme.scale.body,
-    color: core.color('CBD5E1'), align: 'left', valign: 'top'
-  });
+  if (spec.subtitle) {
+    const sFs = core.fitText(8.6, 0.62, txt(spec.subtitle), { min: 14, max: 18, lineH: 1.22 });
+    slide.addText(txt(spec.subtitle), {
+      x: 0.7, y: 3.85, w: 8.6, h: 0.75,
+      fontFace: faceFor(spec.subtitle, theme), fontSize: sFs,
+      color: core.color('CBD5E1'), align: 'left', valign: 'top', lineSpacingMultiple: 1.22
+    });
+  }
   if (spec.meta) slide.addText(txt(spec.meta), {
-    x: 0.7, y: 5.0, w: 8.6, h: 0.3,
+    x: 0.7, y: 5.0, w: 8.6, h: 0.35,
     fontFace: faceFor(spec.meta, theme), fontSize: theme.scale.caption,
     color: core.color('64748B'), align: 'left', valign: 'top'
   });
@@ -78,26 +86,45 @@ function addSection(pptx, spec, theme) {
 function addKeyMsg(pptx, spec, theme) {
   spec = spec || {};
   const slide = pptx.addSlide({ masterName: 'BODY' });
-  core.applyChrome(slide, theme, { title: spec.assertion || spec.title, source: spec.source });
-  const live = { x: grid.liveX, y: grid.liveY, w: grid.liveW, h: grid.liveH };
 
+  // ── 주장 = 히어로(큰 굵은 글씨). 좌측 액센트 바. 길이에 따라 동적 높이 ──
+  const assertion = txt(spec.assertion || spec.title, '핵심 주장');
+  const aX = grid.liveX + 0.32, aW = grid.liveW - 0.32;
+  const aFs = core.fitText(aW, 1.55, assertion, { min: 22, max: 30, lineH: 1.1 });
+  const aH = core.textHeight(aW, assertion, aFs, 1.1);
+  const aY = 0.55;
+  slide.addShape('rect', { x: grid.liveX, y: aY + 0.05, w: 0.09, h: Math.max(0.42, aH - 0.06), fill: { color: core.color(theme.accent) }, line: { type: 'none' } });
+  slide.addText(assertion, {
+    x: aX, y: aY, w: aW, h: aH + 0.12,
+    fontFace: faceFor(assertion, theme), fontSize: aFs, bold: true,
+    color: core.color(theme.ink), align: 'left', valign: 'top', lineSpacingMultiple: 1.1
+  });
+  // 출처 푸터
+  if (spec.source) slide.addText(txt(spec.source), {
+    x: grid.footer.x, y: grid.footer.y, w: grid.footer.w - 1.0, h: grid.footer.h,
+    fontFace: theme.fontBody, fontSize: theme.scale.caption, color: core.color(theme.sub),
+    align: 'left', valign: 'middle'
+  });
+
+  // ── 근거 = 주장 아래로 흘림. 주장보다 작게(위계). ──
+  const evY = aY + aH + 0.3;
+  const evH = Math.max(0.6, 5.15 - evY);
   if (spec.chart && spec.chart.data) {
     core.styledChart(slide, spec.chart.type || 'bar', spec.chart.data, theme,
-      { x: live.x, y: live.y, w: live.w, h: live.h, accentIndex: spec.chart.accentIndex });
+      { x: grid.liveX, y: evY, w: grid.liveW, h: evH, emphasis: (spec.chart.accentIndex != null ? spec.chart.accentIndex : -1) });
   } else if (spec.image) {
-    slide.addImage({ path: spec.image, x: live.x, y: live.y, w: live.w, h: live.h, sizing: { type: 'contain', w: live.w, h: live.h } });
+    slide.addImage({ path: spec.image, x: grid.liveX, y: evY, w: grid.liveW, h: evH, sizing: { type: 'contain', w: grid.liveW, h: evH } });
   } else if (Array.isArray(spec.evidence)) {
     core.addBullets(slide, spec.evidence.map(txt), {
-      x: live.x, y: live.y, w: live.w, h: live.h,
-      fontFace: faceFor(spec.evidence.join(''), theme),
-      fontSize: theme.scale.body, color: core.color(theme.ink)
+      x: grid.liveX, y: evY, w: grid.liveW, h: evH,
+      fontFace: faceFor(spec.evidence.join(''), theme), fontSize: 18, color: core.color('334155')
     });
   } else if (spec.evidence) {
-    const fs = core.fitText(live.w, live.h, txt(spec.evidence), { min: theme.scale.body, max: theme.scale.section, fontFace: theme.fontBody });
+    const eFs = core.fitText(grid.liveW, evH, txt(spec.evidence), { min: 15, max: 20, lineH: 1.3 });
     slide.addText(txt(spec.evidence), {
-      x: live.x, y: live.y, w: live.w, h: live.h,
-      fontFace: faceFor(spec.evidence, theme), fontSize: fs,
-      color: core.color(theme.ink), align: 'left', valign: 'top'
+      x: grid.liveX, y: evY, w: grid.liveW, h: evH,
+      fontFace: faceFor(spec.evidence, theme), fontSize: eFs,
+      color: core.color('334155'), align: 'left', valign: 'top', lineSpacingMultiple: 1.3
     });
   }
   return withNotes(slide, spec);
@@ -147,15 +174,24 @@ function addChart(pptx, spec, theme) {
   spec = spec || {};
   const slide = pptx.addSlide({ masterName: 'BODY' });
   core.applyChrome(slide, theme, { title: spec.title, source: spec.source });
-  // design-spec §4-E : 차트 좌 2/3, so-what 우측
+  const top = 1.65, bottom = 5.15;
+  const hasTake = !!spec.takeaway;
+  // 차트: takeaway 있으면 좌측 약 2/3, 없으면 전폭
+  const chartW = hasTake ? 5.8 : grid.liveW;
   core.styledChart(slide, spec.chartType || 'bar', spec.data || [], theme,
-    { x: 0.5, y: 1.5, w: 6.2, h: 3.5, accentIndex: spec.accentIndex });
-  if (spec.takeaway) {
-    const fs = core.fitText(2.6, 3.5, txt(spec.takeaway), { min: theme.scale.body, max: theme.scale.slideTitle, fontFace: theme.fontBody });
+    { x: grid.liveX, y: top, w: chartW, h: bottom - top,
+      emphasis: (spec.accentIndex != null ? spec.accentIndex : -1) });
+  if (hasTake) {
+    const bx = 6.5, bw = 3.0, by = top, bh = bottom - top;
+    // so-what 카드: 옅은 회색 + 좌측 액센트 바
+    slide.addShape('rect', { x: bx, y: by, w: bw, h: bh, fill: { color: core.color('F8FAFC') }, line: { type: 'none' } });
+    slide.addShape('rect', { x: bx, y: by, w: 0.07, h: bh, fill: { color: core.color(theme.accent) }, line: { type: 'none' } });
+    const tw = bw - 0.55, th = bh - 0.5;
+    const fs = core.fitText(tw, th, txt(spec.takeaway), { min: 14, max: 19, lineH: 1.32 });
     slide.addText(txt(spec.takeaway), {
-      x: 6.9, y: 1.5, w: 2.6, h: 3.5,
-      fontFace: faceFor(spec.takeaway, theme), fontSize: fs, bold: true,
-      color: core.color(theme.ink), align: 'left', valign: 'middle'
+      x: bx + 0.32, y: by + 0.28, w: tw, h: th,
+      fontFace: faceFor(spec.takeaway, theme), fontSize: fs, bold: false,
+      color: core.color(theme.ink), align: 'left', valign: 'top', lineSpacingMultiple: 1.32
     });
   }
   return withNotes(slide, spec);

@@ -84,35 +84,55 @@ function autoGrid(n) {
 }
 
 // ───────────────────────────────────────────────────────────────────
-// fitText(w, h, text, opts) -> pt
-//   박스(인치)·글자수로 폰트 크기 역산. min 미만이면 min 반환.
-//   한글은 라틴 대비 1.7배 폭 가정(design-spec §2).
-//   분할 판단은 lint(L_DENSITY)가 담당 — 여기선 크기만.
+// _lineCount / textHeight / fitText — 박스에 실제로 맞는 폰트를 찾는다.
+//   글자폭 가중: 한글 ≈ 폰트pt, 라틴/숫자 ≈ 0.55pt, 공백 ≈ 0.3pt.
+//   폭에서 줄바꿈을 글자 단위로 세어 줄 수를 구하고, 높이로 검증한다.
 // ───────────────────────────────────────────────────────────────────
+function _chWidth(ch, pt) {
+  if (/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(ch)) return pt;          // 한글 = 전각
+  if (ch === ' ') return pt * 0.3;
+  return pt * 0.66;                                       // 라틴/숫자(굵은 폰트 가정 넉넉히)
+}
+// 단어 단위 줄바꿈: 라틴 단어는 안 쪼개고(실제 렌더와 동일), 한글은 글자 단위로 쪼갬.
+function _lineCount(wInch, text, pt) {
+  const wPt = wInch * 72;
+  let total = 0;
+  for (const ln of String(text).split('\n')) {
+    let lines = 1, cur = 0;
+    const toks = ln.match(/[^\s]+|\s+/g) || [];
+    for (const t of toks) {
+      if (/^\s+$/.test(t)) { cur += t.length * pt * 0.3; continue; }
+      // 한글 포함 토큰은 글자 단위(어디서나 break), 아니면 단어 통째로
+      const units = /[가-힣]/.test(t) ? Array.from(t) : [t];
+      for (const u of units) {
+        let uw = 0;
+        for (const ch of u) uw += _chWidth(ch, pt);
+        if (cur + uw > wPt && cur > 0) { lines++; cur = uw; } else { cur += uw; }
+      }
+    }
+    total += lines;
+  }
+  return total;
+}
+
+// 텍스트가 차지하는 높이(인치) 추정 — 동적 흐름 배치에 쓴다.
+function textHeight(wInch, text, pt, lineH = 1.18) {
+  if (text == null || String(text).length === 0) return 0;
+  return _lineCount(wInch, text, pt) * pt * lineH / 72;
+}
+
+// fitText(w, h, text, opts) -> pt
+//   max→min으로 내려가며, 박스(w·h 인치)에 실제로 들어가는 가장 큰 pt를 반환.
 function fitText(w, h, text, opts = {}) {
   const min = (opts.min != null) ? opts.min : 18;
   const max = (opts.max != null) ? opts.max : 40;
+  const lineH = opts.lineH || 1.18;
   const str = (text == null) ? '' : String(text);
   if (str.length === 0) return max;
-
-  // 한글 가중 글자수 (한글 1.7, 그 외 1.0)
-  let units = 0;
-  for (const ch of str) {
-    units += /[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(ch) ? 1.7 : 1.0;
+  for (let pt = Math.ceil(max); pt >= min; pt--) {
+    if (textHeight(w, str, pt, lineH) <= h) return pt;
   }
-
-  // 1pt ≈ 1/72 in. 평균 글자폭 ≈ 0.5 * 폰트크기(pt) (영문 기준 근사).
-  // 박스 면적(가용 글자 슬롯)에 맞춰 pt를 역산.
-  const wPt = w * 72;
-  const hPt = h * 72;
-  const lineH = 1.18;                 // 줄간격 배수 가정
-  // pt 후보: 폭 한 줄에 units가 들어가도록 / 면적으로 들어가도록 둘 중 작은 값
-  const byArea = Math.sqrt((wPt * hPt) / (units * 0.5 * lineH));
-  let pt = Math.floor(byArea);
-
-  if (!isFinite(pt) || pt < min) return min;
-  if (pt > max) return max;
-  return pt;
+  return min;
 }
 
 // ───────────────────────────────────────────────────────────────────
@@ -191,11 +211,14 @@ function defineMasters(pptx, theme) {
 function applyChrome(slide, theme, opts = {}) {
   const t = theme;
   if (opts.title) {
+    const tw = grid.title.w, th = 1.05;
+    const isKo = /[가-힣]/.test(String(opts.title));
+    const fs = fitText(tw, th, opts.title, { min: 16, max: t.scale.slideTitle, lineH: 1.06 });
     slide.addText(String(opts.title), {
-      x: grid.title.x, y: grid.title.y, w: grid.title.w, h: grid.title.h,
-      fontFace: t.fontHead, fontSize: t.scale.slideTitle, bold: true,
+      x: grid.title.x, y: grid.title.y, w: tw, h: th,
+      fontFace: isKo ? t.fontKo : t.fontHead, fontSize: fs, bold: true,
       color: color(t.ink), align: 'left', valign: 'top',
-      lineSpacingMultiple: 1.0
+      lineSpacingMultiple: 1.06
     });
   }
   if (opts.source) {
@@ -483,6 +506,7 @@ module.exports = {
   applyChrome,
   autoGrid,
   fitText,
+  textHeight,
   styledChart,
   addBullets,
   addIcon,
