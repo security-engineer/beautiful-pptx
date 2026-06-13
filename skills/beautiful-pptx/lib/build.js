@@ -10,6 +10,9 @@ const tokens = require('./tokens');
 const core = require('./core');
 const C = require('./components');
 const PRESETS = require('./presets');
+const assets = require('./assets');
+const os = require('os');
+const path = require('path');
 
 // 슬라이드 토큰 → 부품 함수
 const DISPATCH = {
@@ -144,6 +147,8 @@ async function build(deckSpec, opts) {
   pptx.layout = 'BP16x9';
 
   const theme = tokens.getTheme(deckSpec.theme || 'slate', deckSpec.mode || 'light');
+  // 배경 에셋(그라데이션·기하) 생성 → theme._assets 에 경로. sharp 없으면 단색 폴백.
+  try { await assets.ensureAssets(theme, path.join(os.tmpdir(), 'bp-assets')); } catch (e) { /* graceful */ }
   core.defineMasters(pptx, theme);
 
   const lint = [];

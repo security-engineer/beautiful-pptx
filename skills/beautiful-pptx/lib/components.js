@@ -32,7 +32,7 @@ function txt(v, fallback) {
 function addCover(pptx, spec, theme) {
   spec = spec || {};
   const slide = pptx.addSlide({ masterName: 'TITLE' });
-  slide.background = { color: core.color('0F172A') };
+  slide.background = (theme._assets && theme._assets.dark) ? { path: theme._assets.dark } : { color: core.color('0F172A') };
   // 상단 액센트 바
   slide.addShape('rect', { x: 0.7, y: 1.05, w: 0.95, h: 0.09, fill: { color: core.color(theme.accent) }, line: { type: 'none' } });
   // 고정 존(겹침 원천 차단): 제목 1.45~3.65, 부제 3.85~4.6, 메타 5.0.
@@ -64,7 +64,7 @@ function addCover(pptx, spec, theme) {
 function addSection(pptx, spec, theme) {
   spec = spec || {};
   const slide = pptx.addSlide({ masterName: 'SECTION' });
-  slide.background = { color: core.color('0F172A') };
+  slide.background = (theme._assets && theme._assets.dark) ? { path: theme._assets.dark } : { color: core.color('0F172A') };
   // design-spec §4-B
   const n = spec.n == null ? '' : String(spec.n).padStart(2, '0');
   if (n) slide.addText(n, {
@@ -317,16 +317,21 @@ function addQuote(pptx, spec, theme) {
 function addClosing(pptx, spec, theme) {
   spec = spec || {};
   const slide = pptx.addSlide({ masterName: 'CLOSING' });
-  slide.background = { color: core.color('0F172A') };
-  slide.addText(txt(spec.title, '감사합니다 / Q&A'), {
-    x: 0.7, y: 2.3, w: 8.6, h: 1.0,
-    fontFace: faceFor(spec.title, theme), fontSize: theme.scale.title, bold: true,
-    color: core.color('FFFFFF'), align: 'left', valign: 'middle'
+  slide.background = (theme._assets && theme._assets.dark) ? { path: theme._assets.dark } : { color: core.color('0F172A') };
+  slide.addShape('rect', { x: 0.7, y: 1.45, w: 0.95, h: 0.09, fill: { color: core.color(theme.accent) }, line: { type: 'none' } });
+  const title = txt(spec.title, '감사합니다 / Q&A');
+  const tFs = core.fitText(8.6, 1.9, title, { min: 22, max: 36, lineH: 1.12 });
+  const tH = core.textHeight(8.6, title, tFs, 1.12);
+  const tY = 1.85;
+  slide.addText(title, {
+    x: 0.7, y: tY, w: 8.6, h: tH + 0.12,
+    fontFace: faceFor(title, theme), fontSize: tFs, bold: true,
+    color: core.color('FFFFFF'), align: 'left', valign: 'top', lineSpacingMultiple: 1.12
   });
   if (spec.contact) slide.addText(txt(spec.contact), {
-    x: 0.7, y: 3.6, w: 8.6, h: 0.5,
+    x: 0.7, y: Math.min(tY + tH + 0.35, 4.7), w: 8.6, h: 0.65,
     fontFace: faceFor(spec.contact, theme), fontSize: theme.scale.body,
-    color: core.color('CBD5E1'), align: 'left', valign: 'top'
+    color: core.color('CBD5E1'), align: 'left', valign: 'top', lineSpacingMultiple: 1.2
   });
   return withNotes(slide, spec);
 }
