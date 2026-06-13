@@ -1,0 +1,107 @@
+{
+  "theme": "navy",
+  "mode": "light",
+  "preset": "research-talk",
+  "layout": "16x9",
+  "slides": [
+    {
+      "type": "cover",
+      "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
+      "subtitle": "중간 추론 과정을 예시로 보여주면, 충분히 큰 언어모델의 복잡한 추론 능력이 깨어난다",
+      "meta": "Wei et al. · Google Research · NeurIPS 2022 · arXiv 2201.11903 · 논문 발표 정리",
+      "notes": "한 줄 요약 — 정답만 주던 few-shot 예시에 '풀이 과정'을 끼워 넣었더니, 큰 모델이 수학·추론 문제를 훨씬 잘 풀더라. 표지는 30초 이내.",
+      "source": ""
+    },
+    {
+      "type": "keymsg",
+      "assertion": "언어모델은 규모를 키우면 많은 과제가 좋아졌지만, 여러 단계를 밟아야 하는 추론은 규모만으로는 거의 나아지지 않았다",
+      "evidence": "수학 문장제(GSM8K)처럼 중간 계산을 여러 번 해야 하는 문제에서, 표준 few-shot 프롬프트는 모델을 키워도 정답률이 낮은 채로 정체됐다. '더 큰 모델'이 답이 아니었다.",
+      "source": "Wei et al. 2022, §1",
+      "notes": "왜 신경 쓰나 — 추론은 당시 LLM의 분명한 약점이었다. 비전공 청중에겐 'GSM8K = 초등 수준 수학 문장제'라고 한 줄 보강. 도입에 시간 충분히."
+    },
+    {
+      "type": "keymsg",
+      "assertion": "핵심 질문 — 추가 학습이나 파인튜닝 없이, 프롬프트만 바꿔서 추론 능력을 끌어낼 수 있을까?",
+      "evidence": "기존 해법은 수만 개 풀이를 모아 모델을 따로 학습시키는 것이었다. 비싸고 과제마다 다시 해야 한다. 저자들은 '예시 몇 개'만 바꿔서 되는지를 묻는다.",
+      "source": "",
+      "notes": "연구 질문은 한 문장으로. 슬라이드를 읽지 말고 청중을 보면서 말할 것."
+    },
+    {
+      "type": "keymsg",
+      "assertion": "Chain-of-Thought Prompting — 정답만 보여주던 예시에, 정답에 이르는 '중간 추론 단계'를 함께 적어 준다",
+      "evidence": "few-shot 예시 8개 각각에 사람이 푼 풀이 과정(chain of thought)을 넣는다. 그러면 모델이 새 문제에서도 답을 내기 전에 단계별 추론을 먼저 생성한다. 모델 가중치는 전혀 건드리지 않는다.",
+      "source": "Wei et al. 2022, §2",
+      "notes": "방법의 전부다. '예시에 풀이를 끼운다' 한 가지. 다음 비교 슬라이드 그림으로 보여줄 것."
+    },
+    {
+      "type": "compare",
+      "title": "같은 문제, 다른 예시 — 표준은 정답만, CoT는 풀이까지 보여 준다",
+      "left": { "head": "표준 프롬프트", "points": ["예시: 질문 → 정답(숫자)만", "모델: 새 질문에 답을 바로 출력", "다단계 계산에서 자주 틀림"] },
+      "right": { "head": "Chain-of-Thought 프롬프트", "points": ["예시: 질문 → 단계별 풀이 → 정답", "모델: 새 질문에도 풀이를 먼저 생성", "중간 단계를 밟아 정답률 급상승"] },
+      "source": "Wei et al. 2022, 그림 1",
+      "notes": "왼쪽=기존, 오른쪽=제안. 둘의 차이는 '예시에 풀이가 있느냐 없느냐' 하나뿐임을 강조."
+    },
+    {
+      "type": "section",
+      "n": "1",
+      "title": "결과 — 얼마나 좋아졌나",
+      "notes": "여기부터 결과. 그림 1장 = 주장 1개로. 발표 시간의 약 35%."
+    },
+    {
+      "type": "chart",
+      "title": "수학 문장제(GSM8K)에서 PaLM 540B 정답률이 17.9%에서 56.9%로 세 배 넘게 뛰었다",
+      "chartType": "bar",
+      "data": [
+        { "name": "GSM8K 정답률(%)", "labels": ["표준 프롬프트", "CoT 프롬프트"], "values": [17.9, 56.9] }
+      ],
+      "takeaway": "같은 모델, 같은 8개 예시 — 풀이를 끼웠을 뿐인데 3배 이상. 당시 SOTA로, 검증기까지 붙인 파인튜닝 GPT-3도 넘어섰다.",
+      "source": "Wei et al. 2022, PaLM 540B 결과",
+      "notes": "논문의 임팩트가 이 한 장에 있다. 17.9 → 56.9를 손가락으로 짚으며, '풀이를 보여줬을 뿐'을 반복."
+    },
+    {
+      "type": "kpi",
+      "title": "핵심 수치 한눈에",
+      "items": [
+        { "value": "56.9%", "label": "GSM8K 정답률", "interp": "표준 17.9%의 3배+, 당시 SOTA", "color": "ok" },
+        { "value": "8개", "label": "few-shot 예시", "interp": "추가 학습·파인튜닝 0", "color": "info" },
+        { "value": "540B", "label": "PaLM 파라미터", "interp": "효과가 나타나는 규모", "color": "concept" },
+        { "value": "3범주", "label": "산술·상식·기호", "interp": "한 기법으로 일관된 향상", "color": "accent" }
+      ],
+      "source": "Wei et al. 2022",
+      "notes": "숫자마다 해석 한 줄. 56.9% 하나만 각인시켜도 성공."
+    },
+    {
+      "type": "keymsg",
+      "assertion": "이 향상은 '창발적'이다 — 약 100B 파라미터 이상에서만 나타나고, 작은 모델에선 도움이 안 되거나 오히려 해로웠다",
+      "evidence": "같은 CoT 프롬프트를 작은 모델에 주면 풀이가 비논리적이어서 정답률이 표준보다 낮았다. 추론 능력이 규모와 함께 '켜지는' 현상으로, 저자들은 이를 emergent ability라 부른다.",
+      "source": "Wei et al. 2022, §3·그림 4",
+      "notes": "가장 흥미로운 발견. '작은 모델엔 오히려 해롭다'가 반직관적이라 청중이 좋아함."
+    },
+    {
+      "type": "keymsg",
+      "assertion": "효과는 수학에만 국한되지 않는다 — 산술·상식·기호 세 갈래 추론 과제 전반에서 일관됐다",
+      "evidence": "산술(GSM8K·SVAMP·ASDiv·AQuA·MAWPS), 상식(CommonsenseQA·StrategyQA), 기호(Last Letter·Coin Flip). 모든 범주에서 CoT가 표준을 넘었고, 단계가 많을수록 격차가 컸다.",
+      "source": "Wei et al. 2022, §3~5",
+      "notes": "한 기법이 여러 도메인에 통한다는 일반성. 데이터셋 이름은 빠르게 훑고 넘어가도 됨."
+    },
+    {
+      "type": "keymsg",
+      "assertion": "한계도 분명하다 — 추론이 옳다는 보장은 없고, 큰 모델에서만 작동하며, 예시는 사람이 손으로 만든다",
+      "evidence": "그럴듯하지만 틀린 풀이로 정답을 맞히기도 해 '진짜 추론'인지 불명확하다. 100B 미만에선 효과가 없어 비용이 크고, 좋은 CoT 예시 작성에 사람 손이 든다. 이 한계들이 이후 self-consistency·zero-shot CoT 연구로 이어졌다.",
+      "source": "Wei et al. 2022, §6 한계·논의",
+      "notes": "정직하게. 후속 연구로의 다리도 한 줄. 방어적으로 굴지 말 것."
+    },
+    {
+      "type": "closing",
+      "title": "중간 추론 과정을 예시로 보여주기만 해도, 충분히 큰 모델에서는 복잡한 추론 능력이 깨어난다",
+      "contact": "원문: Wei et al., \"Chain-of-Thought Prompting Elicits Reasoning in LLMs\", NeurIPS 2022 · arXiv 2201.11903",
+      "notes": "take-home 한 문장으로 마무리하고 Q&A로. 기여를 한 줄로 재진술."
+    },
+    {
+      "type": "backup",
+      "title": "백업 — 추가 벤치마크·모델·후속 연구",
+      "body": "모델 비교: LaMDA 137B, GPT-3 175B, PaLM 8B/62B/540B — 효과는 약 100B부터 발현. 디코딩: 그리디, few-shot 예시 8개. 상식추론 StrategyQA·CommonsenseQA에서도 표준 대비 향상. GSM8K 56.9%는 검증기 붙인 파인튜닝 GPT-3를 초과한 SOTA. 후속: self-consistency(다중 샘플 다수결로 GSM8K 추가 향상), zero-shot CoT('Let's think step by step' 한 줄).",
+      "notes": "Q&A 대비용. 발표 흐름엔 넣지 말고 질문 들어오면 펼칠 것."
+    }
+  ]
+}

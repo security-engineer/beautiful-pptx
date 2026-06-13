@@ -1,4 +1,4 @@
 node_modules/
 *.pptx
-/out/
+**/out/
 _research/

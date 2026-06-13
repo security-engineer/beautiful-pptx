@@ -4,5 +4,5 @@
   "version": "0.1.0",
   "license": "MIT",
   "keywords": ["pptx","powerpoint","presentation","slides","pptxgenjs","design","korean"],
-  "skills": ["."]
+  "skills": ["./skills/beautiful-pptx"]
 }
